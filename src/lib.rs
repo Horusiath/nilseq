@@ -126,10 +126,28 @@ mod test {
         a.merge(b.clone());
         b.merge(a.clone());
 
-        println!("A: {:#?}", a);
-
         assert_eq!(a.to_string(), expected);
         assert_eq!(b.to_string(), expected);
+    }
+
+    fn multi_peer_mixed_index_depth<F: FractionalIndex + Debug>() {
+        let mut b: LSeq<F, char> = LSeq::new(B);
+        let mut a: LSeq<F, char> = LSeq::new(A);
+        b.insert_range(0, "ae".chars());
+        b.insert(1, 'd');
+
+        // sync
+        a.merge(b.clone());
+
+        b.insert(1, 'C');
+        a.insert(1, 'b');
+
+        // sync
+        a.merge(b.clone());
+        b.merge(a.clone());
+
+        assert_eq!(a.to_string(), "abCde");
+        assert_eq!(b.to_string(), "abCde");
     }
 
     #[test]
@@ -148,6 +166,11 @@ mod test {
     }
 
     #[test]
+    fn naive_multi_peer_mixed_index_depth() {
+        multi_peer_mixed_index_depth::<crate::index::NaiveFractionalIndex>();
+    }
+
+    #[test]
     fn non_interleaving_same_peer_sequential_insert() {
         same_peer_sequential_insert::<crate::index::NonInterleavingIndex>();
     }
@@ -160,5 +183,10 @@ mod test {
     #[test]
     fn non_interleaving_multi_peer_same_position_insert() {
         multi_peer_same_position_insert::<crate::index::NonInterleavingIndex>("abcdFGHe");
+    }
+
+    #[test]
+    fn non_interleaving_multi_peer_mixed_index_depth() {
+        multi_peer_mixed_index_depth::<crate::index::NonInterleavingIndex>();
     }
 }
